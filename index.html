@@ -1,1225 +1,322 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="ja" id="top">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>ぷよ対戦ONLINE(Authentic Final)</title>
-    <style>
-        body {
-            margin: 0; padding: 0;
-            background-color: #2c3e50;
-            color: white;
-            font-family: 'Hiragino Kaku Gothic ProN', sans-serif;
-            overflow: hidden; touch-action: none;
-            display: flex; flex-direction: column; align-items: center;
-            height: 100vh; width: 100vw;
-            padding-bottom: env(safe-area-inset-bottom);
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MICO e-Sports | 公式ウェブサイト</title>
+  <meta name="description" content="MICO e-Sportsの公式サイト。チーム紹介、活動内容、メンバー情報、実績、お問い合わせはこちら。" />
 
-        /* --- Header --- */
-        #header-area {
-            width: 100%; height: 90px;
-            display: flex; justify-content: space-between;
-            padding: 5px 10px; box-sizing: border-box;
-            background: rgba(0,0,0,0.2);
-            flex-shrink: 0;
-            pointer-events: none;
-        }
-        
-        #left-header { width: 60px; text-align: center; pointer-events: auto; position: relative; }
-        #opponent-view { width: 100%; height: 100%; transition: opacity 0.3s; }
-        #opponent-canvas { background: #000; border: 1px solid #555; width: 40px; height: 80px; border-radius: 4px; }
-        .small-label { font-size: 10px; color: #aaa; margin-bottom: 2px; white-space: nowrap;}
+  <style>
+    :root {
+      --bg-main: #0a0c10;
+      --bg-card: #161b22;
+      --text-main: #e6edf3;
+      --text-muted: #8b949e;
+      --accent-blue: #2f81f7;
+      --accent-cyan: #00d4ff;
+      --border-color: #30363d;
+      --radius: 18px;
+    }
 
-        #btn-pause {
-            position: absolute; top: 10px; left: 5px;
-            width: 50px; height: 50px;
-            background: rgba(255, 255, 255, 0.2);
-            border: 2px solid rgba(255, 255, 255, 0.5);
-            border-radius: 8px;
-            color: white; font-size: 24px; font-weight: bold;
-            display: flex; justify-content: center; align-items: center;
-            cursor: pointer; z-index: 20;
-        }
-        #btn-pause:active { background: rgba(255,255,255,0.4); }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-        #center-info {
-            flex-grow: 1; display: flex; flex-direction: column;
-            align-items: center; justify-content: center; padding: 0 10px;
-        }
-        #highscore-display { font-size: 12px; color: #aaa; margin-bottom: 0px; display: none; }
-        #score-display { font-size: 24px; font-weight: bold; color: #f1c40f; text-shadow: 1px 1px 0 #000; margin-bottom: 2px;}
-        .ojama-bar { width: 100%; height: 12px; background: #333; border-radius: 6px; overflow: hidden; margin-top: 2px; border: 1px solid #555;}
-        #ojama-fill { height: 100%; background: #e74c3c; width: 0%; transition: width 0.3s; }
-        #ojama-count { font-size: 10px; color: #e74c3c; margin-top: 2px; height: 12px; font-weight: bold;}
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial,
+        "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+      background: radial-gradient(circle at top, rgba(47,129,247,0.15), transparent 40%),
+        linear-gradient(180deg, #0a0c10, #090b0f);
+      color: var(--text-main);
+      line-height: 1.7;
+    }
 
-        /* --- Game Area --- */
-        #game-area {
-            position: relative; flex-grow: 1;
-            display: flex; justify-content: center; align-items: flex-start;
-            width: 100%; padding-top: 5px;
-        }
-        canvas#myCanvas {
-            background-color: #000;
-            border: 4px solid #7f8c8d; border-radius: 4px;
-            box-shadow: 0 0 25px rgba(0,0,0,0.7);
-        }
-        #next-display {
-            position: absolute; top: 5px; right: 15px;
-            width: 44px; height: 84px;
-            background: rgba(0,0,0,0.6);
-            border: 2px solid #555; border-radius: 8px;
-            display: flex; justify-content: center; align-items: center;
-        }
-        
-        /* All Clear Effect */
-        #all-clear-msg {
-            position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0);
-            font-size: 40px; font-weight: bold; color: #f1c40f;
-            text-shadow: 0 0 10px #e74c3c, 2px 2px 0 #000;
-            pointer-events: none; opacity: 0; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            z-index: 50; white-space: nowrap;
-        }
-        #all-clear-msg.show { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    a { color: inherit; text-decoration: none; }
 
-        /* --- Controls --- */
-        #controls {
-            width: 100%; height: 280px;
-            background: linear-gradient(to top, rgba(0,0,0,0.5), rgba(0,0,0,0));
-            display: flex; justify-content: space-between; align-items: flex-end;
-            padding: 0 20px; box-sizing: border-box;
-            flex-shrink: 0; 
-            padding-bottom: max(20px, env(safe-area-inset-bottom) + 10px);
-            pointer-events: auto;
-        }
+    .container {
+      width: min(100% - 32px, 1100px);
+      margin: 0 auto;
+    }
 
-        .d-pad-area { width: 170px; height: 160px; position: relative; margin-bottom: 50px; }
-        .btn {
-            position: absolute;
-            background: rgba(255,255,255,0.15);
-            border: 2px solid rgba(255,255,255,0.2);
-            border-radius: 50%;
-            display: flex; justify-content: center; align-items: center;
-            font-size: 28px; user-select: none;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
-            backdrop-filter: blur(5px);
-            transition: transform 0.05s, background 0.05s;
-            color: rgba(255,255,255,0.8);
-        }
-        .btn.active {
-            background: rgba(255,255,255,0.4); transform: scale(0.95);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.4); border-color: rgba(255,255,255,0.6);
-        }
-        
-        #btn-left { top: 20px; left: 0; width: 75px; height: 75px; }
-        #btn-down { bottom: 0; left: 50%; transform: translateX(-50%); width: 75px; height: 75px; border-color: rgba(255,255,255,0.4); background: rgba(255,255,255,0.1); }
-        #btn-right { top: 20px; right: 0; width: 75px; height: 75px; }
+    /* ===== Header ===== */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      backdrop-filter: blur(12px);
+      background: rgba(10,12,16,0.85);
+      border-bottom: 1px solid rgba(48,54,61,0.7);
+    }
 
-        .action-area { width: 150px; height: 160px; position: relative; margin-bottom: 20px; }
-        #btn-rot-r { top: 0; right: 0; width: 100px; height: 100px; background: rgba(231, 76, 60, 0.5); border-color: #c0392b; font-size: 36px; font-weight: bold; }
-        #btn-rot-l { bottom: 0; left: 0; width: 60px; height: 60px; background: rgba(52, 152, 219, 0.5); border-color: #2980b9; font-size: 20px; }
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      min-height: 72px;
+      flex-wrap: wrap;
+    }
 
-        #lobby-overlay, #result-overlay, #pause-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(44,62,80,0.98); z-index: 100;
-            display: flex; flex-direction: column;
-            justify-content: center; align-items: center;
-            transition: opacity 0.3s;
-        }
-        #pause-overlay { background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); z-index: 90; }
-        .hidden { display: none !important; }
-        
-        .ui-btn {
-            font-size: 18px; padding: 15px; width: 260px;
-            background: #2ecc71; color: white; border: none; border-radius: 12px;
-            margin: 8px; font-weight: bold; cursor: pointer;
-            box-shadow: 0 4px 0 #27ae60;
-            transition: all 0.2s;
-            border: 2px solid transparent;
-        }
-        .ui-btn:active, .ui-btn.focused { 
-            transform: scale(1.05); 
-            box-shadow: 0 0 15px #f1c40f; 
-            border-color: #f1c40f;
-            z-index: 10;
-        }
-        
-        input { font-size: 20px; padding: 12px; text-align: center; width: 220px; border-radius: 8px; border: none; margin-bottom: 10px; }
-        .mode-label { font-size: 12px; color: #aaa; margin-top: 20px; border-top: 1px solid #555; padding-top: 10px; width: 80%; text-align: center;}
-        
-        #gamepad-notify {
-            position: fixed; top: 10px; left: 50%; transform: translateX(-50%);
-            background: rgba(52, 152, 219, 0.9); padding: 5px 15px; border-radius: 20px;
-            font-size: 12px; pointer-events: none; opacity: 0; transition: opacity 0.5s; z-index: 200;
-        }
-    </style>
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+    }
+
+    .logo img {
+      width: 38px;
+      height: 38px;
+      object-fit: contain;
+    }
+
+    .logo span {
+      color: var(--accent-cyan);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+
+    .nav-links a {
+      color: var(--text-muted);
+    }
+
+    /* ===== Hero ===== */
+    .hero {
+      padding: 70px 0 60px;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.3fr 0.9fr;
+      gap: 24px;
+    }
+
+    .hero-card {
+      padding: 32px;
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(22,27,34,0.9), rgba(17,21,27,0.95));
+      border: 1px solid var(--border-color);
+    }
+
+    h1 {
+      font-size: 3rem;
+      line-height: 1.1;
+      margin: 16px 0;
+    }
+
+    .muted { color: var(--text-muted); }
+
+    /* ===== Buttons ===== */
+    .btns { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 20px; }
+
+    .btn {
+      padding: 12px 20px;
+      border-radius: 999px;
+      font-weight: 700;
+      border: 1px solid transparent;
+    }
+
+    .primary {
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+      color: #fff;
+    }
+
+    .secondary {
+      border: 1px solid var(--border-color);
+    }
+
+    /* ===== Sections ===== */
+    section { padding: 34px 0; }
+
+    .title {
+      font-size: 1.8rem;
+      margin-bottom: 14px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .card {
+      background: rgba(22,27,34,0.9);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+
+    /* ===== Member ===== */
+    .member {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+    }
+
+    /* ===== Timeline ===== */
+    .timeline-item {
+      border-left: 3px solid var(--accent-blue);
+      padding: 14px 16px;
+      margin-bottom: 12px;
+      background: rgba(22,27,34,0.7);
+      border-radius: 0 12px 12px 0;
+    }
+
+    /* ===== Mobile ===== */
+    @media (max-width: 800px) {
+      .hero-grid,
+      .grid-3 {
+        grid-template-columns: 1fr;
+      }
+
+      h1 { font-size: 2.2rem; }
+    }
+  </style>
 </head>
+
 <body>
 
-    <div id="gamepad-notify">🎮 コントローラー接続</div>
-
-    <div id="lobby-overlay">
-        <h1>ぷよ対戦 ONLINE</h1>
-        <div id="lobby-status" style="margin-bottom:20px; color:#f1c40f; min-height:1.2em;">接続中...</div>
-        <div id="lobby-controls" class="hidden" style="display:flex; flex-direction:column; align-items:center;">
-            <button id="btn-create" class="ui-btn" data-nav="0">部屋を作る (HOST)</button>
-            <div style="display:flex; flex-direction:column; align-items:center; margin:10px 0; border:1px dashed #555; padding:10px; border-radius:8px;">
-                <input type="text" id="inp-room" class="ui-input" data-nav="1" placeholder="部屋ID (6桁)" maxlength="6">
-                <button id="btn-join" class="ui-btn" data-nav="2" style="background:#34495e; box-shadow:0 4px 0 #2c3e50;">参加する (GUEST)</button>
-            </div>
-            <div class="mode-label">練習モード</div>
-            <button id="btn-solo" class="ui-btn" data-nav="3" style="background:#f1c40f; color:#333; box-shadow:0 4px 0 #d35400;">1人で練習 (SOLO)</button>
-        </div>
+<header>
+  <div class="container nav">
+    
+    <!-- 🔥 ロゴここ -->
+    <div class="logo">
+      <img src="image.png" alt="MICOロゴ">
+      <span>MICO e-Sports</span>
     </div>
 
-    <div id="result-overlay" class="hidden">
-        <h1 id="res-msg">WIN!</h1>
-        <div id="res-score" style="font-size:24px; margin:20px;">0</div>
-        <button id="btn-back" class="ui-btn" data-nav="0">ロビーへ戻る</button>
-    </div>
+    <nav class="nav-links">
+      <a href="#about">チーム</a>
+      <a href="#members">メンバー</a>
+      <a href="#results">実績</a>
+      <a href="#contact">問い合わせ</a>
+    </nav>
+  </div>
+</header>
 
-    <div id="pause-overlay" class="hidden">
-        <h1>PAUSED</h1>
-        <p style="margin-bottom: 20px;">一時停止中</p>
-        <button id="btn-resume" class="ui-btn">再開する</button>
-        <button id="btn-quit" class="ui-btn" style="background:#e74c3c; margin-top:20px;">終了する</button>
-    </div>
+<main>
 
-    <div id="header-area">
-        <div id="left-header">
-            <div id="opponent-view">
-                <div class="small-label" id="rival-label">RIVAL</div>
-                <canvas id="opponent-canvas" width="60" height="120"></canvas>
-            </div>
-            <div id="btn-pause" class="hidden">II</div>
+  <!-- HERO -->
+  <section class="hero">
+    <div class="container hero-grid">
+
+      <div class="hero-card">
+        <small class="muted">Official Website</small>
+        <h1>勝つ、その先へ。</h1>
+        <p class="muted">
+          MICO e-Sportsは競技力と発信力を両立するチーム。
+          結果と魅せ方、どっちも取りにいく。
+        </p>
+
+        <div class="btns">
+          <a class="btn primary" href="#about">見る</a>
+          <a class="btn secondary" href="#contact">連絡</a>
         </div>
-        <div id="center-info">
-            <div id="highscore-display">HI: 0</div>
-            <div id="score-display">0</div>
-            <div class="ojama-bar"><div id="ojama-fill"></div></div>
-            <div id="ojama-count"></div>
-        </div>
+      </div>
+
     </div>
+  </section>
 
-    <div id="game-area">
-        <div id="all-clear-msg">ALL CLEAR!</div>
-        <canvas id="myCanvas" width="300" height="600"></canvas>
-        <div id="next-display">
-            <canvas id="nextCanvas" width="40" height="80"></canvas>
+  <!-- ABOUT -->
+  <section id="about">
+    <div class="container">
+      <div class="title">チーム</div>
+
+      <div class="grid-3">
+        <div class="card">
+          <h3>競技</h3>
+          <p class="muted">勝つための練習と分析を徹底。</p>
         </div>
+        <div class="card">
+          <h3>発信</h3>
+          <p class="muted">SNS・配信で魅力を広げる。</p>
+        </div>
+        <div class="card">
+          <h3>つながり</h3>
+          <p class="muted">応援されるチーム運営。</p>
+        </div>
+      </div>
     </div>
+  </section>
 
-    <div id="controls">
-        <div class="d-pad-area">
-            <div id="btn-left" class="btn">←</div>
-            <div id="btn-down" class="btn">↓</div>
-            <div id="btn-right" class="btn">→</div>
+  <!-- MEMBERS -->
+  <section id="members">
+    <div class="container">
+      <div class="title">メンバー</div>
+
+      <div class="grid-3">
+
+        <div class="card member">
+          <div class="avatar"></div>
+          <div>
+            <b>Player 01</b>
+            <p class="muted">VALORANT / IGL</p>
+          </div>
         </div>
-        <div class="action-area">
-            <div id="btn-rot-l" class="btn">↺</div>
-            <div id="btn-rot-r" class="btn">↻</div>
+
+        <div class="card member">
+          <div class="avatar"></div>
+          <div>
+            <b>Player 02</b>
+            <p class="muted">Apex / Entry</p>
+          </div>
         </div>
+
+        <div class="card member">
+          <div class="avatar"></div>
+          <div>
+            <b>Player 03</b>
+            <p class="muted">Fortnite / Clutch</p>
+          </div>
+        </div>
+
+      </div>
     </div>
+  </section>
+
+  <!-- RESULTS -->
+  <section id="results">
+    <div class="container">
+      <div class="title">実績</div>
+
+      <div class="timeline-item">
+        <b>2025</b>
+        <p class="muted">公式サイト公開</p>
+      </div>
+
+      <div class="timeline-item">
+        <b>2025</b>
+        <p class="muted">大会出場準備中</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact">
+    <div class="container card" style="text-align:center;">
+      <div class="title">お問い合わせ</div>
+      <p class="muted">スポンサー・コラボ・参加はこちら</p>
+
+      <div class="btns" style="justify-content:center;">
+        <a class="btn primary" href="mailto:info@example.com">メール</a>
+      </div>
+    </div>
+  </section>
+
+</main>
 
-    <script type="module">
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        function resumeAudio() { if (audioCtx.state === 'suspended') audioCtx.resume(); }
-        const Sound = {
-            playTone: (freq, type, dur, vol = 0.1) => {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-                gain.gain.setValueAtTime(vol, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + dur);
-                osc.connect(gain); gain.connect(audioCtx.destination);
-                osc.start(); osc.stop(audioCtx.currentTime + dur);
-            },
-            move: () => Sound.playTone(300, 'square', 0.05, 0.05),
-            rotate: () => Sound.playTone(200, 'square', 0.05, 0.05),
-            drop: () => Sound.playTone(100, 'triangle', 0.1, 0.2),
-            bounce: () => Sound.playTone(80, 'sine', 0.1, 0.2),
-            chain: (count) => {
-                const base = 440; const s = [1, 1.12, 1.25, 1.33, 1.5, 1.68, 1.87, 2];
-                const note = s[(count - 1) % s.length] * (1 + Math.floor((count-1)/s.length));
-                [0, 0.05].forEach((d, i) => {
-                    const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-                    osc.type = 'sine'; osc.frequency.setValueAtTime(base * note * (i?1.5:1), audioCtx.currentTime + d);
-                    gain.gain.setValueAtTime(0.1, audioCtx.currentTime + d);
-                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + d + 0.3);
-                    osc.connect(gain); gain.connect(audioCtx.destination);
-                    osc.start(audioCtx.currentTime + d); osc.stop(audioCtx.currentTime + d + 0.3);
-                });
-            },
-            ojama: () => Sound.playTone(150, 'sawtooth', 0.3, 0.1),
-            ui: () => Sound.playTone(400, 'sine', 0.1, 0.1),
-            allClear: () => {
-                [0, 0.1, 0.2, 0.3, 0.4].forEach((d, i) => {
-                    const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-                    osc.type = 'triangle'; 
-                    osc.frequency.setValueAtTime(523.25 * (1 + i*0.25), audioCtx.currentTime + d);
-                    gain.gain.setValueAtTime(0.2, audioCtx.currentTime + d);
-                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + d + 0.5);
-                    osc.connect(gain); gain.connect(audioCtx.destination);
-                    osc.start(audioCtx.currentTime + d); osc.stop(audioCtx.currentTime + d + 0.5);
-                });
-            },
-            gameover: () => {
-                const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-                osc.frequency.setValueAtTime(300, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 1);
-                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-                gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1);
-                osc.connect(gain); gain.connect(audioCtx.destination);
-                osc.start(); osc.stop(audioCtx.currentTime + 1);
-            }
-        };
-
-        const firebaseConfig = {
-          apiKey: "AIzaSyCgjrv8A7sUw5QWyDKZ2BWvUFMcBQcT25s",
-          authDomain: "puyo-51038.firebaseapp.com",
-          projectId: "puyo-51038",
-          storageBucket: "puyo-51038.firebasestorage.app",
-          messagingSenderId: "1002703596394",
-          appId: "1:1002703596394:web:75226face440a30f6d9313",
-          measurementId: "G-P8G9GQGE1P"
-        };
-        const appId = 'puyo-v3';
-
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, onSnapshot, updateDoc, increment } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        let currentUser = null;
-        let currentRoomId = null;
-        let isHost = false;
-        let isSolo = false;
-        let unsubscribe = null;
-
-        signInAnonymously(auth).catch(e => {
-            document.getElementById('lobby-status').innerText = "通信エラー(Solo可)";
-            document.getElementById('lobby-controls').classList.remove('hidden');
-        });
-        
-        onAuthStateChanged(auth, user => {
-            if(user) {
-                currentUser = user;
-                document.getElementById('lobby-status').innerText = "";
-                document.getElementById('lobby-controls').classList.remove('hidden');
-                setupNav();
-            }
-        });
-
-        const COLS = 6;
-        const ROWS = 13; 
-        const COLORS = [null, '#e74c3c', '#2ecc71', '#3498db', '#f1c40f', '#9b59b6']; 
-        const OJAMA = 5;
-
-        const cvs = document.getElementById('myCanvas');
-        const ctx = cvs.getContext('2d');
-        const nextCvs = document.getElementById('nextCanvas');
-        const nextCtx = nextCvs.getContext('2d');
-        const opCvs = document.getElementById('opponent-canvas');
-        const opCtx = opCvs.getContext('2d');
-
-        let state = 'LOBBY'; 
-        let board = [];
-        let score = 0;
-        let highScore = 0;
-        let queue = [];
-        let qIdx = 0;
-        let cur = null;
-        let chain = 0;
-        
-        // --- おじゃま管理用変数 (相殺対応) ---
-        let myOjama = 0; // 自分に降る予定の数
-        let myTotalDropped = 0; // 自分が実際に降らせた数の累計
-        let myTotalOffset = 0;  // 自分が相殺した数の累計
-        let processedOpOjama = 0;
-        
-        let dropTimer = 0;
-        let animTimer = 0;
-        let isPaused = false;
-        let lockDelay = 0;
-        
-        // マージンタイム用
-        let startTime = 0;
-        
-        let hasAllClearFlag = false;
-
-        let fallingPuyos = [];
-        let bouncingPuyos = [];
-        let erasingPuyos = [];
-
-        // --- UI Navigation ---
-        let navIdx = 0;
-        let navItems = [];
-        let isNavActive = true;
-
-        function setupNav() {
-            const overlay = state === 'LOBBY' ? document.getElementById('lobby-controls') 
-                          : state === 'GAMEOVER' ? document.getElementById('result-overlay') : null;
-            if(!overlay || overlay.classList.contains('hidden')) { isNavActive = false; return; }
-            navItems = Array.from(overlay.querySelectorAll('.ui-btn, .ui-input, button'));
-            navItems.sort((a,b) => (a.dataset.nav||0) - (b.dataset.nav||0));
-            navIdx = 0; isNavActive = true; updateNavFocus();
-        }
-        function updateNavFocus() {
-            navItems.forEach((el, i) => {
-                if(i === navIdx) el.classList.add('focused');
-                else el.classList.remove('focused');
-            });
-        }
-        function handleNavInput(dx, dy, isEnter) {
-            if(!isNavActive || navItems.length === 0) return;
-            if(dy !== 0) {
-                Sound.ui();
-                navIdx += dy;
-                if(navIdx < 0) navIdx = navItems.length - 1;
-                if(navIdx >= navItems.length) navIdx = 0;
-                updateNavFocus();
-            }
-            if(isEnter) {
-                Sound.ui();
-                const el = navItems[navIdx];
-                if(el.tagName === 'INPUT') el.focus(); else el.click();
-            }
-        }
-
-        // --- Gesture Logic ---
-        let touchStartX = 0, touchStartY = 0, lastMoveX = 0, isTap = true, touchId = null;
-        const SENSITIVITY_X = 30, FLICK_Y = 50;
-
-        const setupGestures = () => {
-            const el = document.getElementById('game-area');
-            el.addEventListener('touchstart', e => {
-                if(state !== 'PLAY' || !cur || isPaused) return;
-                e.preventDefault();
-                const t = e.changedTouches[0];
-                touchId = t.identifier;
-                touchStartX = t.clientX; touchStartY = t.clientY;
-                lastMoveX = t.clientX; isTap = true;
-            }, {passive: false});
-
-            el.addEventListener('touchmove', e => {
-                if(state !== 'PLAY' || !cur || isPaused) return;
-                e.preventDefault();
-                let t = null;
-                for(let i=0; i<e.changedTouches.length; i++) if(e.changedTouches[i].identifier === touchId) t = e.changedTouches[i];
-                if(!t) return;
-
-                const dx = t.clientX - lastMoveX;
-                const dy = t.clientY - touchStartY;
-
-                if (Math.abs(dx) > SENSITIVITY_X) {
-                    isTap = false;
-                    const steps = Math.floor(dx / SENSITIVITY_X);
-                    if (steps !== 0) {
-                        move(steps > 0 ? 1 : -1, 0);
-                        lastMoveX = t.clientX;
-                    }
-                }
-                if (dy > FLICK_Y) {
-                    isTap = false;
-                    move(0, 1);
-                    score++; document.getElementById('score-display').innerText=score;
-                    touchStartY = t.clientY; 
-                }
-            }, {passive: false});
-
-            el.addEventListener('touchend', e => {
-                if(state !== 'PLAY' || !cur || isPaused) return;
-                e.preventDefault();
-                let t = null;
-                for(let i=0; i<e.changedTouches.length; i++) if(e.changedTouches[i].identifier === touchId) t = e.changedTouches[i];
-                if(!t) return;
-                if (isTap) rotate(1);
-                touchId = null;
-            });
-        };
-        setupGestures();
-
-        // --- Lobby Logic ---
-        document.getElementById('btn-solo').onclick = () => {
-            resumeAudio(); isSolo = true;
-            document.getElementById('opponent-view').style.opacity = '0';
-            document.getElementById('btn-pause').classList.remove('hidden');
-            const q = []; for(let i=0; i<500; i++) q.push({m: Math.floor(Math.random()*4)+1, s: Math.floor(Math.random()*4)+1});
-            initGame(q);
-        };
-
-        document.getElementById('btn-create').onclick = async () => {
-            if(!currentUser) return;
-            resumeAudio(); isSolo = false;
-            document.getElementById('opponent-view').style.opacity = '1';
-            document.getElementById('btn-pause').classList.add('hidden');
-            const rid = Math.floor(100000 + Math.random()*900000).toString();
-            currentRoomId = rid; isHost = true;
-            const q = []; for(let i=0; i<100; i++) q.push({m: Math.floor(Math.random()*4)+1, s: Math.floor(Math.random()*4)+1});
-            const ref = doc(db, 'artifacts', appId, 'public', 'data', 'puyo_rooms', rid);
-            document.getElementById('lobby-status').innerText = "Creating...";
-            await setDoc(ref, {
-                host: currentUser.uid, guest: null, state: 'wait', q: q,
-                hBoard: Array(ROWS*COLS).fill(0), gBoard: Array(ROWS*COLS).fill(0),
-                hOjama: 0, gOjama: 0, win: null
-            });
-            document.getElementById('lobby-status').innerHTML = `Room: <b style="font-size:24px; color:white;">${rid}</b><br>Waiting...`;
-            listen(rid);
-        };
-
-        document.getElementById('btn-join').onclick = async () => {
-            if(!currentUser) return;
-            resumeAudio(); isSolo = false;
-            document.getElementById('opponent-view').style.opacity = '1';
-            document.getElementById('btn-pause').classList.add('hidden');
-            const rid = document.getElementById('inp-room').value;
-            if(rid.length!==6) return alert("6桁IDを入力");
-            const ref = doc(db, 'artifacts', appId, 'public', 'data', 'puyo_rooms', rid);
-            const snap = await getDoc(ref);
-            if(!snap.exists() || snap.data().state !== 'wait') return alert("入れません");
-            currentRoomId = rid; isHost = false;
-            await updateDoc(ref, { guest: currentUser.uid, state: 'ready' });
-            document.getElementById('lobby-status').innerText = "Ready.";
-            listen(rid);
-        };
-
-        function listen(rid) {
-            document.getElementById('lobby-controls').classList.add('hidden');
-            isNavActive = false;
-            const ref = doc(db, 'artifacts', appId, 'public', 'data', 'puyo_rooms', rid);
-            unsubscribe = onSnapshot(ref, s => {
-                if(!s.exists()) return;
-                const d = s.data();
-                if(state==='LOBBY' && d.state === 'ready') {
-                    initGame(d.q);
-                    if(isHost) updateDoc(ref, {state: 'play'});
-                }
-                
-                if(state==='PLAY' || state==='WAIT_FALL' || state==='FALL' || state==='BOUNCE' || state==='WAIT_CHECK' || state==='ERASE') {
-                    const opBoardData = isHost ? d.gBoard : d.hBoard;
-                    const opOjamaTotal = isHost ? d.hOjama : d.gOjama; // 相手が送信したおじゃまの累計
-                    
-                    drawOp(opBoardData);
-                    
-                    // --- 相殺を考慮した現在の保留おじゃま数の計算 ---
-                    const newMyOjama = Math.max(0, opOjamaTotal - myTotalDropped - myTotalOffset);
-                    if (newMyOjama > myOjama) {
-                        Sound.ojama(); // おじゃまが増えた時（相手から攻撃された時）
-                    }
-                    myOjama = newMyOjama;
-                    updateUI(opOjamaTotal - myTotalDropped - myTotalOffset); // 画面更新用
-                    
-                    if(d.win) endGame(d.win === currentUser.uid);
-                }
-            });
-        }
-
-        // --- Game Core ---
-        function initGame(qData) {
-            document.getElementById('lobby-overlay').classList.add('hidden');
-            document.getElementById('all-clear-msg').classList.remove('show');
-            isNavActive = false; isPaused = false;
-            queue = qData; qIdx = 0;
-            board = Array.from({length: ROWS}, () => Array(COLS).fill(0));
-            score = 0; chain = 0;
-            
-            // おじゃまリセット
-            myOjama = 0;
-            myTotalDropped = 0;
-            myTotalOffset = 0;
-            processedOpOjama = 0;
-            
-            state = 'PLAY';
-            lockDelay = 0;
-            hasAllClearFlag = false;
-            fallingPuyos = []; bouncingPuyos = []; erasingPuyos = [];
-            
-            startTime = Date.now(); // マージンタイム計測用
-            
-            if(isSolo) {
-                const saved = localStorage.getItem('puyo_high_score');
-                highScore = saved ? parseInt(saved) : 0;
-                const hsDisp = document.getElementById('highscore-display');
-                hsDisp.innerText = "HI: " + highScore;
-                hsDisp.style.display = 'block';
-            } else {
-                document.getElementById('highscore-display').style.display = 'none';
-            }
-
-            updateUI(); resize(); spawn(); loop();
-        }
-
-        function togglePause() {
-            if(!isSolo || state === 'GAMEOVER') return;
-            isPaused = !isPaused;
-            const overlay = document.getElementById('pause-overlay');
-            if(isPaused) overlay.classList.remove('hidden');
-            else {
-                overlay.classList.add('hidden');
-                dropTimer = performance.now();
-            }
-        }
-        
-        document.getElementById('btn-pause').onclick = togglePause;
-        document.getElementById('btn-resume').onclick = togglePause;
-        document.getElementById('btn-quit').onclick = () => {
-            isPaused = false;
-            document.getElementById('pause-overlay').classList.add('hidden');
-            endGame(false);
-        };
-
-        function spawn() {
-            // おじゃま処理 (最大30個まで)
-            if(myOjama > 0 && !isSolo) {
-                const dropCount = Math.min(myOjama, 30);
-                dropOjama(dropCount);
-                
-                // 降らせた分を記録して保留から減らす
-                myTotalDropped += dropCount;
-                myOjama -= dropCount;
-                
-                updateUI();
-                if(!isSolo) sync();
-                return; // FALL状態へ
-            }
-
-            if(board[1][2] !== 0) return setGameOver();
-
-            const p = queue[qIdx % queue.length];
-            const np = queue[(qIdx+1) % queue.length];
-            qIdx++;
-            cur = { x: 2, y: 1, rot: 0, main: p.m, sub: p.s };
-            state = 'PLAY';
-            drawNext(np);
-            dropTimer = performance.now();
-            lockDelay = 0; 
-            
-            document.getElementById('all-clear-msg').classList.remove('show');
-        }
-
-        function loop(t) {
-            if(state === 'GAMEOVER') {
-                updateGamepad(); requestAnimationFrame(loop); return;
-            }
-            requestAnimationFrame(loop);
-            updateGamepad();
-            if(isPaused) return;
-
-            const now = t || performance.now();
-
-            if(state === 'PLAY' && cur) {
-                if(!checkMove(cur.x, cur.y + 1, cur.rot)) {
-                    if(now - dropTimer > 800) {
-                        lockDelay += (now - dropTimer);
-                        dropTimer = now;
-                        if(lockDelay > 500) lock();
-                    }
-                } else {
-                    lockDelay = 0;
-                    if(now - dropTimer > 800) {
-                        move(0, 1);
-                        dropTimer = now;
-                    }
-                }
-            } 
-            else if(state === 'WAIT_FALL') {
-                if(now > animTimer) startFalling();
-            }
-            else if(state === 'FALL') {
-                updateFall();
-            }
-            else if(state === 'BOUNCE') {
-                updateBounce();
-            }
-            else if(state === 'WAIT_CHECK') {
-                if(now > animTimer) checkMatches();
-            }
-            else if(state === 'ERASE') {
-                if(now > animTimer) finishErase();
-            }
-            
-            draw();
-        }
-
-        function checkMove(nx, ny, nRot) {
-            const s = getSub(nx, ny, nRot);
-            return valid(nx, ny) && valid(s.x, s.y);
-        }
-
-        function move(dx, dy) {
-            if(!cur) return false;
-            const {x, y, rot} = cur;
-            const nx = x+dx, ny = y+dy;
-            
-            if(checkMove(nx, ny, rot)) {
-                cur.x = nx; cur.y = ny;
-                if(dx!==0) {
-                    Sound.move();
-                    lockDelay = 0; 
-                }
-                return true;
-            }
-            return false;
-        }
-
-        function rotate(dir) {
-            if(!cur) return;
-            const {x, y, rot} = cur;
-            const nr = (rot + dir + 4) % 4;
-            
-            if(checkMove(x, y, nr)) {
-                cur.rot = nr; Sound.rotate(); lockDelay = 0; return;
-            }
-            const kicks = [[-1,0], [1,0], [0,-1], [0,1]];
-            for(let k of kicks) {
-                let nx = x+k[0], ny = y+k[1];
-                if(checkMove(nx, ny, nr)) {
-                    cur.x = nx; cur.y = ny; cur.rot = nr;
-                    Sound.rotate(); lockDelay = 0; return;
-                }
-            }
-            const flipRot = (rot + 2) % 4;
-            if(checkMove(x, y, flipRot)) {
-                cur.rot = flipRot; Sound.rotate(); lockDelay = 0;
-            }
-        }
-
-        function lock() {
-            const {x, y, rot, main, sub} = cur;
-            const s = getSub(x, y, rot);
-            if(y>=0) board[y][x] = main;
-            if(s.y>=0) board[s.y][s.x] = sub;
-            cur = null;
-            Sound.drop();
-            if(!isSolo) sync();
-            
-            state = 'WAIT_FALL';
-            animTimer = performance.now() + 100;
-        }
-
-        // --- 修正: 本家風の正確な落下・ちぎりロジック ---
-        function startFalling() {
-            fallingPuyos = [];
-            let hasFall = false;
-            
-            for(let x=0; x<COLS; x++) {
-                let emptySpaces = 0;
-                // 下から順にスキャンして空きマスの数を数える
-                for(let y=ROWS-1; y>=0; y--) {
-                    if(board[y][x] === 0) {
-                        emptySpaces++;
-                    } else if(emptySpaces > 0) {
-                        let dy = y + emptySpaces;
-                        fallingPuyos.push({
-                            c: board[y][x],
-                            x: x,
-                            destY: dy,
-                            pixelY: y,
-                            vy: 0,
-                            finished: false 
-                        });
-                        board[y][x] = 0;
-                        hasFall = true;
-                    }
-                }
-            }
-
-            if(hasFall) {
-                state = 'FALL';
-            } else {
-                state = 'WAIT_CHECK';
-                animTimer = performance.now() + 100;
-            }
-        }
-
-        function updateFall() {
-            let active = false;
-            fallingPuyos.forEach(p => {
-                if(p.finished) return;
-                p.vy += 0.05;
-                p.pixelY += p.vy;
-                if(p.pixelY >= p.destY) {
-                    p.pixelY = p.destY;
-                    p.finished = true;
-                    bouncingPuyos.push({ x: p.x, y: p.destY, c: p.c, offset: 0, vel: -0.2 });
-                } else {
-                    active = true;
-                }
-            });
-            if(!active) {
-                state = 'BOUNCE';
-                Sound.bounce();
-            }
-        }
-
-        function updateBounce() {
-            let active = false;
-            bouncingPuyos.forEach(p => {
-                p.offset += p.vel;
-                p.vel += 0.05;
-                if(p.offset > 0) {
-                    p.offset = 0; p.vel = 0;
-                    if(p.y >= 0 && p.y < ROWS && board[p.y][p.x] === 0) board[p.y][p.x] = p.c;
-                } else {
-                    active = true;
-                }
-            });
-
-            if(!active) {
-                bouncingPuyos = [];
-                fallingPuyos = [];
-                state = 'WAIT_CHECK';
-                animTimer = performance.now() + 200;
-            }
-        }
-
-        function checkMatches() {
-            const groups = findGroups();
-            if(groups.length > 0) {
-                chain++;
-                let toRemove = [];
-                let colorSet = new Set();
-                let groupBonus = 0;
-                let totalPuyos = 0;
-
-                groups.forEach(g => {
-                    toRemove.push(...g);
-                    totalPuyos += g.length;
-                    const c = board[g[0].y][g[0].x];
-                    colorSet.add(c);
-                    if(g.length === 5) groupBonus += 2;
-                    else if(g.length >= 6 && g.length <= 10) groupBonus += (g.length - 3);
-                    else if(g.length >= 11) groupBonus += 10;
-                });
-
-                removePuyos(toRemove);
-                erasingPuyos = toRemove;
-                Sound.chain(chain);
-                
-                // --- SCORING ---
-                const chainBonuses = [0, 8, 16, 32, 64, 96, 128, 160, 192, 224, 256, 288, 320, 352, 384, 416, 448, 480, 512];
-                let bChain = chainBonuses[Math.min(chain - 1, chainBonuses.length - 1)];
-                if (chain === 1) bChain = 0; 
-
-                let bColor = 0;
-                const colors = colorSet.size;
-                if(colors === 2) bColor = 3;
-                else if(colors === 3) bColor = 6;
-                else if(colors === 4) bColor = 12;
-                else if(colors === 5) bColor = 24;
-
-                let multiplier = bChain + groupBonus + bColor;
-                if(multiplier === 0) multiplier = 1;
-                if(multiplier > 999) multiplier = 999;
-
-                let baseScore = totalPuyos * 10;
-                let stepScore = baseScore * multiplier;
-
-                if (hasAllClearFlag) {
-                    stepScore += 2100;
-                    hasAllClearFlag = false;
-                    document.getElementById('all-clear-msg').classList.remove('show');
-                }
-
-                score += stepScore;
-                document.getElementById('score-display').innerText = score;
-                
-                // --- 相殺（そうさい）とマージンタイムの処理 ---
-                let playTime = (Date.now() - startTime) / 1000;
-                let targetPoint = 70;
-                if (playTime > 96) {
-                    targetPoint -= Math.floor(playTime - 96);
-                    if (targetPoint < 1) targetPoint = 1;
-                }
-                
-                const send = Math.floor(stepScore / targetPoint);
-
-                if (!isSolo && send > 0) {
-                    // 相殺: 自分に降る予定のおじゃまから引く
-                    const offset = Math.min(myOjama, send);
-                    myTotalOffset += offset;
-                    myOjama -= offset; 
-                    
-                    // 相殺しきって余った分を相手に送る
-                    const remain = send - offset;
-                    if (remain > 0) {
-                        sendOjama(remain); // Firestoreへ
-                    }
-                    updateUI(); 
-                }
-
-                state = 'ERASE';
-                animTimer = performance.now() + 600;
-            } else {
-                if (checkAllClear()) {
-                    hasAllClearFlag = true;
-                    Sound.allClear();
-                    document.getElementById('all-clear-msg').classList.add('show');
-                }
-                chain = 0;
-                spawn();
-            }
-        }
-        
-        function checkAllClear() {
-            for(let y=0; y<ROWS; y++) {
-                for(let x=0; x<COLS; x++) {
-                    if(board[y][x] !== 0 && board[y][x] !== OJAMA) return false;
-                }
-            }
-            return true;
-        }
-
-        function finishErase() {
-            removePuyos(erasingPuyos);
-            erasingPuyos = [];
-            state = 'WAIT_FALL';
-            animTimer = performance.now() + 100;
-        }
-
-        function findGroups() {
-            const visited = Array.from({length: ROWS}, () => Array(COLS).fill(false));
-            const groups = [];
-            for(let y=0; y<ROWS; y++) {
-                for(let x=0; x<COLS; x++) {
-                    const c = board[y][x];
-                    if(c !== 0 && c !== OJAMA && !visited[y][x]) {
-                        const group = [];
-                        check(x, y, c, visited, group);
-                        if(group.length >= 4) groups.push(group);
-                    }
-                }
-            }
-            return groups;
-        }
-
-        function check(x, y, c, visited, group) {
-            if(x<0||x>=COLS||y<0||y>=ROWS) return;
-            if(visited[y][x] || board[y][x] !== c) return;
-            visited[y][x] = true; group.push({x, y});
-            check(x+1, y, c, visited, group); check(x-1, y, c, visited, group);
-            check(x, y+1, c, visited, group); check(x, y-1, c, visited, group);
-        }
-
-        function removePuyos(list) {
-            const ojamaList = [];
-            list.forEach(p => {
-                [[0,1],[0,-1],[1,0],[-1,0]].forEach(d => {
-                    const nx = p.x+d[0], ny = p.y+d[1];
-                    if(valid(nx, ny, true) && board[ny][nx]===OJAMA) ojamaList.push({x:nx, y:ny});
-                });
-                board[p.y][p.x] = 0;
-            });
-            ojamaList.forEach(p => board[p.y][p.x] = 0);
-        }
-
-        function dropOjama(cnt) {
-            const drops = Array(COLS).fill(0);
-            const lines = Math.floor(cnt / 6);
-            for(let x=0; x<COLS; x++) drops[x] += lines;
-            const rem = cnt % 6;
-            if(rem > 0) {
-                const cols = [0,1,2,3,4,5].sort(()=>Math.random()-0.5);
-                for(let i=0; i<rem; i++) drops[cols[i]]++;
-            }
-
-            let created = false;
-            for(let x=0; x<COLS; x++) {
-                const count = drops[x];
-                if(count === 0) continue;
-                
-                let topY = ROWS; 
-                for(let y=0; y<ROWS; y++) {
-                    if(board[y][x] !== 0) { topY = y; break; }
-                }
-
-                for(let i=0; i<count; i++) {
-                    const dest = topY - 1 - i;
-                    fallingPuyos.push({
-                        c: OJAMA, x: x, destY: dest, pixelY: -2 - (i * 2), vy: 0, finished: false
-                    });
-                    created = true;
-                }
-            }
-
-            if(created) {
-                state = 'FALL';
-                Sound.ojama();
-            } else {
-                if(board[1][2] !== 0) setGameOver();
-                else {
-                    const piece = queue[qIdx % queue.length];
-                    const np = queue[(qIdx+1) % queue.length];
-                    qIdx++;
-                    cur = { x: 2, y: 1, rot: 0, main: piece.m, sub: piece.s };
-                    state = 'PLAY';
-                    drawNext(np);
-                    dropTimer = performance.now();
-                }
-            }
-        }
-
-        async function sync() {
-            if(!currentRoomId) return;
-            const ref = doc(db, 'artifacts', appId, 'public', 'data', 'puyo_rooms', currentRoomId);
-            const data = isHost ? {hBoard: board.flat()} : {gBoard: board.flat()};
-            try { await updateDoc(ref, data); } catch(e){}
-        }
-        async function sendOjama(n) {
-            if(!currentRoomId) return;
-            const ref = doc(db, 'artifacts', appId, 'public', 'data', 'puyo_rooms', currentRoomId);
-            const key = isHost ? 'gOjama' : 'hOjama';
-            // Firestoreに累計送信量を足す
-            await updateDoc(ref, {[key]: increment(n)});
-        }
-        function setGameOver() {
-            state = 'GAMEOVER';
-            Sound.gameover();
-            if(isSolo) return endGame(false);
-            const ref = doc(db, 'artifacts', appId, 'public', 'data', 'puyo_rooms', currentRoomId);
-            getDoc(ref).then(s => {
-                const d = s.data();
-                const winId = isHost ? d.guest : d.host;
-                updateDoc(ref, {win: winId});
-            });
-            endGame(false);
-        }
-
-        function getSub(x, y, r) {
-            if(r===0) return {x, y: y-1};
-            if(r===1) return {x: x+1, y};
-            if(r===2) return {x, y: y+1};
-            return {x: x-1, y};
-        }
-        function valid(x, y, ignoreColor) {
-            if(ignoreColor) return x>=0 && x<COLS && y>=0 && y<ROWS;
-            return x>=0 && x<COLS && y>=0 && y<ROWS && board[y][x] === 0;
-        }
-
-        function resize() {
-            const h = document.getElementById('game-area').clientHeight - 10;
-            const w = h / 2;
-            cvs.width = w; cvs.height = h;
-            cvs.style.width = w+"px"; cvs.style.height = h+"px";
-        }
-        window.onresize = resize;
-
-        // --- 描画関数 (修正: ぷよがくっつかない丸い仕様) ---
-        function draw() {
-            ctx.fillStyle = '#111'; ctx.fillRect(0,0,cvs.width,cvs.height);
-            const cw = cvs.width / COLS;
-            const ch = cvs.height / (ROWS-1);
-            
-            ctx.strokeStyle = '#333'; ctx.lineWidth = 1;
-            for(let x=1; x<COLS; x++) { ctx.beginPath(); ctx.moveTo(x*cw,0); ctx.lineTo(x*cw,cvs.height); ctx.stroke(); }
-            for(let y=1; y<ROWS; y++) {
-                ctx.strokeStyle = (y===1) ? '#c0392b' : '#333';
-                ctx.beginPath(); ctx.moveTo(0, (y-1)*ch); ctx.lineTo(cvs.width, (y-1)*ch); ctx.stroke();
-            }
-
-            for(let y=1; y<ROWS; y++) {
-                for(let x=0; x<COLS; x++) {
-                    const color = board[y][x];
-                    if(color!==0) {
-                        if(state === 'ERASE' && erasingPuyos.find(ep => ep.x===x && ep.y===y)) {
-                            if(Math.floor(Date.now()/60)%2===0) continue; 
-                        }
-                        // くっつく描画を廃止し、丸いぷよを描画する
-                        drawPuyo(ctx, x, y-1, color, cw, ch);
-                    }
-                }
-            }
-            fallingPuyos.forEach(fp => {
-                if(!fp.finished) drawPuyo(ctx, fp.x, fp.pixelY-1, fp.c, cw, ch);
-            });
-            bouncingPuyos.forEach(bp => {
-                drawPuyo(ctx, bp.x, bp.y-1, bp.c, cw, ch, bp.offset * ch);
-            });
-            if(state==='PLAY' && cur) {
-                const {x, y, rot, main, sub} = cur;
-                const s = getSub(x, y, rot);
-                drawPuyo(ctx, x, y-1, main, cw, ch);
-                drawPuyo(ctx, s.x, s.y-1, sub, cw, ch);
-            }
-            ctx.fillStyle = 'rgba(231,76,60,0.3)'; ctx.fillRect(2*cw, 0, cw, ch);
-        }
-        
-        function drawPuyo(c, gx, gy, col, w, h, dyOffset = 0) {
-            if(gy < -1) return;
-            const cx = gx * w + w/2;
-            const cy = gy * h + h/2 + dyOffset;
-            const r = Math.min(w,h)*0.48;
-            
-            c.fillStyle = COLORS[col];
-            c.beginPath(); c.arc(cx, cy, r, 0, Math.PI*2); c.fill();
-            
-            if(col !== OJAMA) {
-                c.fillStyle = 'rgba(255,255,255,0.4)';
-                c.beginPath(); c.arc(cx-r*0.3, cy-r*0.3, r*0.25, 0, Math.PI*2); c.fill();
-            } else {
-                c.fillStyle = 'rgba(0,0,0,0.3)';
-                c.beginPath(); c.arc(cx, cy, r*0.6, 0, Math.PI*2); c.fill();
-            }
-        }
-
-        function drawNext(p) {
-            nextCtx.clearRect(0,0,nextCvs.width, nextCvs.height);
-            const w = nextCvs.width, r = w/2*0.85;
-            const dc = (y, c) => {
-                nextCtx.fillStyle = COLORS[c]; nextCtx.beginPath(); nextCtx.arc(w/2, y, r, 0, Math.PI*2); nextCtx.fill();
-                if(c !== OJAMA) {
-                    nextCtx.fillStyle = 'rgba(255,255,255,0.4)';
-                    nextCtx.beginPath(); nextCtx.arc(w/2-r*0.3, y-r*0.3, r*0.25, 0, Math.PI*2); nextCtx.fill();
-                }
-            };
-            dc(r+4, p.s); dc(r*3+8, p.m);
-        }
-        
-        function drawOp(dat) {
-            opCtx.fillStyle = '#000'; opCtx.fillRect(0,0,opCvs.width, opCvs.height);
-            if(!dat) return;
-            const w = opCvs.width/COLS, h = opCvs.height/(ROWS-1);
-            for(let i=0; i<dat.length; i++) {
-                const c = dat[i];
-                if(c!==0) {
-                    const x = i%COLS, y = Math.floor(i/COLS);
-                    if(y>=1) {
-                         opCtx.fillStyle = COLORS[c]; opCtx.beginPath();
-                         opCtx.arc(x*w+w/2, (y-1)*h+h/2, w*0.4, 0, Math.PI*2); opCtx.fill();
-                    }
-                }
-            }
-        }
-
-        function updateUI(displayOjamaCount) {
-            let countToShow = displayOjamaCount !== undefined ? displayOjamaCount : myOjama;
-            document.getElementById('ojama-count').innerText = countToShow > 0 ? countToShow + "個" : "";
-            const pct = Math.min(countToShow, 30)/30*100; // バーは最大30（1回で降る量）でMAXになるように
-            document.getElementById('ojama-fill').style.width = pct+"%";
-            document.getElementById('score-display').innerText = score;
-        }
-        
-        function endGame(win) {
-            state = 'GAMEOVER';
-            document.getElementById('res-msg').innerText = win ? "YOU WIN!" : (isSolo ? "FINISH" : "LOSE...");
-            document.getElementById('res-score').innerText = score;
-            document.getElementById('result-overlay').classList.remove('hidden');
-            
-            if(isSolo && score > highScore) {
-                highScore = score;
-                localStorage.setItem('puyo_high_score', highScore);
-                document.getElementById('res-msg').innerText = "NEW RECORD!";
-            }
-            setupNav();
-        }
-        
-        document.getElementById('btn-back').onclick = () => {
-             document.getElementById('result-overlay').classList.add('hidden');
-             document.getElementById('lobby-overlay').classList.remove('hidden');
-             document.getElementById('lobby-controls').classList.remove('hidden');
-             state = 'LOBBY'; 
-             isGameOver = false;
-             document.getElementById('opponent-view').style.opacity = '0';
-             setupNav(); 
-        };
-
-        // --- Controls (Touch & Gamepad) ---
-        const activeTimers = {};
-        const clearBtn = (id) => {
-            const b = document.getElementById(id);
-            b.classList.remove('active');
-            if(activeTimers[id]) { clearInterval(activeTimers[id]); delete activeTimers[id]; }
-        };
-        const bindRep = (id, fn) => {
-            const b = document.getElementById(id);
-            const start = (e) => { 
-                e.preventDefault(); 
-                if(isPaused || state === 'GAMEOVER') return; 
-                clearBtn(id); b.classList.add('active'); fn(); activeTimers[id] = setInterval(fn, 100); 
-            };
-            const end = (e) => { if(e.cancelable) e.preventDefault(); clearBtn(id); };
-            b.addEventListener('touchstart', start, {passive:false}); b.addEventListener('touchend', end); b.addEventListener('touchcancel', end);
-            b.addEventListener('mousedown', start); b.addEventListener('mouseup', end); b.addEventListener('mouseleave', end);
-        };
-        const bind = (id, fn) => {
-            const b = document.getElementById(id);
-            const start = (e) => { 
-                e.preventDefault(); 
-                if(isPaused || state === 'GAMEOVER') return;
-                b.classList.add('active'); fn(); 
-            };
-            const end = (e) => { if(e.cancelable) e.preventDefault(); b.classList.remove('active'); };
-            b.addEventListener('touchstart', start, {passive:false}); b.addEventListener('touchend', end); b.addEventListener('touchcancel', end);
-            b.addEventListener('mousedown', start); b.addEventListener('mouseup', end); b.addEventListener('mouseleave', end);
-        };
-        
-        bindRep('btn-left', () => move(-1, 0));
-        bindRep('btn-right', () => move(1, 0));
-        bindRep('btn-down', () => { move(0, 1); score++; document.getElementById('score-display').innerText=score; });
-        bind('btn-rot-r', () => rotate(1));
-        bind('btn-rot-l', () => rotate(-1));
-
-        document.addEventListener('visibilitychange', () => { if (document.hidden) ['btn-left', 'btn-right', 'btn-down'].forEach(id => clearBtn(id)); });
-
-        const gpState = { lastButtons: [], repeatTimers: {} };
-        window.addEventListener("gamepadconnected", () => {
-            document.getElementById('gamepad-notify').style.opacity = 1;
-            setTimeout(() => document.getElementById('gamepad-notify').style.opacity = 0, 3000);
-        });
-
-        function updateGamepad() {
-            const gps = navigator.getGamepads();
-            const gp = gps[0];
-            if (!gp) return;
-
-            if(isNavActive) {
-                const up = gp.buttons[12]?.pressed || gp.axes[1] < -0.5;
-                const down = gp.buttons[13]?.pressed || gp.axes[1] > 0.5;
-                const enter = gp.buttons[0]?.pressed; 
-                if(up && !gpState.lastButtons['nav_up']) handleNavInput(0, -1, false); gpState.lastButtons['nav_up'] = up;
-                if(down && !gpState.lastButtons['nav_down']) handleNavInput(0, 1, false); gpState.lastButtons['nav_down'] = down;
-                if(enter && !gpState.lastButtons['nav_enter']) handleNavInput(0, 0, true); gpState.lastButtons['nav_enter'] = enter;
-                return;
-            }
-
-            if(gp.buttons[9]?.pressed && !gpState.lastButtons['start']) togglePause();
-            gpState.lastButtons['start'] = gp.buttons[9]?.pressed;
-            if(isPaused || state === 'GAMEOVER') return; 
-
-            const handleInput = (btnIdx, action) => {
-                const pressed = gp.buttons[btnIdx]?.pressed || (typeof btnIdx ==='string' ? false : false);
-                if (pressed) {
-                    if (!gpState.lastButtons[btnIdx]) { action(); gpState.repeatTimers[btnIdx] = Date.now() + 200; } 
-                    else if (Date.now() > gpState.repeatTimers[btnIdx]) { action(); gpState.repeatTimers[btnIdx] = Date.now() + 100; }
-                } else { gpState.repeatTimers[btnIdx] = 0; }
-                gpState.lastButtons[btnIdx] = pressed;
-            };
-
-            if(gp.axes[0] < -0.5) handleInput('axis_l', () => move(-1, 0)); else gpState.lastButtons['axis_l'] = false;
-            if(gp.axes[0] > 0.5) handleInput('axis_r', () => move(1, 0)); else gpState.lastButtons['axis_r'] = false;
-            
-            if(gp.axes[1] > 0.5) handleInput('axis_d', () => { 
-                move(0, 1); 
-                score++; 
-                document.getElementById('score-display').innerText = score;
-            }); 
-            else gpState.lastButtons['axis_d'] = false;
-
-            handleInput(14, () => move(-1, 0)); 
-            handleInput(15, () => move(1, 0)); 
-            handleInput(13, () => { 
-                move(0, 1); 
-                score++; 
-                document.getElementById('score-display').innerText = score;
-            });
-
-            if (gp.buttons[0].pressed && !gpState.lastButtons[0]) rotate(1); gpState.lastButtons[0] = gp.buttons[0].pressed;
-            if (gp.buttons[1].pressed && !gpState.lastButtons[1]) rotate(-1); gpState.lastButtons[1] = gp.buttons[1].pressed;
-        }
-
-    </script>
 </body>
 </html>
