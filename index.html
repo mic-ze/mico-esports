@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MICO e-Sports | 公式ウェブサイト</title>
-  <meta name="description" content="MICO e-Sportsの公式サイト。チーム紹介、活動内容、メンバー情報、実績、お問い合わせはこちら。" />
+  <meta name="description" content="MICO e-Sportsの公式サイト。チーム紹介、活動内容、メンバー情報、部門、お問い合わせはこちら。" />
 
   <style>
     :root {
@@ -158,20 +158,12 @@
       align-items: center;
     }
 
-    .avatar {
+    /* アイコン画像を丸く表示するためのスタイル */
+    .avatar-img {
       width: 50px;
       height: 50px;
       border-radius: 14px;
-      background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
-    }
-
-    /* ===== Timeline ===== */
-    .timeline-item {
-      border-left: 3px solid var(--accent-blue);
-      padding: 14px 16px;
-      margin-bottom: 12px;
-      background: rgba(22,27,34,0.7);
-      border-radius: 0 12px 12px 0;
+      object-fit: cover;
     }
 
     /* ===== Mobile ===== */
@@ -192,14 +184,15 @@
   <div class="container nav">
     
     <div class="logo">
-      <img src="image.png" alt="MICOロゴ">
+      <!-- チームロゴの画像名を logo.png に変更 -->
+      <img src="logo.png" alt="MICOロゴ">
       <span>MICO e-Sports</span>
     </div>
 
     <nav class="nav-links">
       <a href="#about">チーム</a>
+      <a href="#divisions">部門</a>
       <a href="#members">メンバー</a>
-      <a href="#results">実績</a>
       <a href="#contact">問い合わせ</a>
     </nav>
   </div>
@@ -250,39 +243,43 @@
     </div>
   </section>
 
+  <!-- DIVISIONS (部門セクションを新たに追加) -->
+  <section id="divisions">
+    <div class="container">
+      <div class="title">部門</div>
+
+      <div class="grid-3">
+        <div class="card">
+          <h3>競技部門</h3>
+          <p class="muted">大会での勝利を目指し、トップレベルの環境で活動。</p>
+        </div>
+        <div class="card">
+          <h3>育成部門</h3>
+          <p class="muted">次世代のプロプレイヤーを発掘・育成。</p>
+        </div>
+        <div class="card">
+          <h3>ストリーマー部門</h3>
+          <p class="muted">ゲームの楽しさを伝え、コミュニティを盛り上げる。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- MEMBERS -->
   <section id="members">
     <div class="container">
       <div class="title">メンバー</div>
 
-      <!-- メンバーを1人に変更 -->
       <div class="grid-3">
         <div class="card member">
-          <div class="avatar"></div>
+          <!-- Kurosiroさんのアイコン画像を設定 -->
+          <img src="image.png" alt="kurosiro" class="avatar-img">
           <div>
             <b>kurosiro</b>
             <p class="muted">Fortnite</p>
           </div>
         </div>
       </div>
-    </div>
-  </section>
-
-  <!-- RESULTS -->
-  <section id="results">
-    <div class="container">
-      <div class="title">実績</div>
-
-      <div class="timeline-item">
-        <b>2025</b>
-        <p class="muted">公式サイト公開</p>
-      </div>
-
-      <div class="timeline-item">
-        <b>2025</b>
-        <p class="muted">大会出場準備中</p>
-      </div>
-
     </div>
   </section>
 
@@ -293,7 +290,6 @@
       <p class="muted">スポンサー・コラボ・参加はこちら</p>
 
       <div class="btns" style="justify-content:center;">
-        <!-- Xのリンクに変更し、新しいタブで開く設定（target="_blank"）を追加 -->
         <a class="btn primary" href="https://x.com/mico_esports" target="_blank" rel="noopener noreferrer">X (@mico_esports)</a>
       </div>
     </div>
